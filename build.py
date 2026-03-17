@@ -7,7 +7,7 @@ Build script for Diecast Catalog
 Daily update: just replace products.xml and run this script (or push to GitHub).
 """
 import xml.etree.ElementTree as ET
-import json, math, html, re, os
+import json, math, html, re, os, base64
 
 # ── PRICING ──────────────────────────────────────────────────────────────────
 def markup_price(cost_str):
@@ -31,6 +31,14 @@ def clean_desc(raw):
     decoded = re.sub(r'\r\n|\r|\n', '', decoded)
     decoded = re.sub(r'\s+', ' ', decoded).strip()
     return decoded
+
+
+# ── LOGO (embed as base64 so it works offline) ───────────────────────────────
+logo_src = ''
+if os.path.exists('logo.png'):
+    with open('logo.png', 'rb') as f:
+        logo_src = 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
+    print("  Logo embedded")
 
 # ── PARSE XML ────────────────────────────────────────────────────────────────
 print("Parsing products.xml...")
@@ -118,9 +126,11 @@ select{{flex:1;background:var(--card);border:1px solid var(--border);color:var(-
 .ic{{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.72);color:#ccc;font-size:0.58rem;padding:2px 7px;border-radius:99px;}}
 .cb{{padding:10px 11px 12px;flex:1;display:flex;flex-direction:column;gap:7px;}}
 .ct{{font-size:0.74rem;font-weight:400;line-height:1.4;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}}
-.cf{{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px;gap:4px;margin-top:auto;}}
-.sk{{font-size:0.6rem;color:var(--muted);font-family:"Courier New",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%;}}
-.pr{{font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:1px;color:var(--accent);white-space:nowrap;}}
+.sku-row{{display:flex;align-items:center;gap:5px;margin-top:2px;}}
+.sku-label{{font-size:0.6rem;font-weight:700;color:#fff;letter-spacing:.5px;text-transform:uppercase;}}
+.sku-val{{font-size:0.6rem;font-weight:700;color:#fff;font-family:"Courier New",monospace;letter-spacing:.5px;}}
+.price-row{{margin-top:2px;}}
+.pr{{font-family:"Bebas Neue",sans-serif;font-size:1.25rem;letter-spacing:1.5px;color:var(--accent);}}
 .pagination{{display:flex;justify-content:center;align-items:center;gap:6px;padding:22px 16px;padding-bottom:max(22px,env(safe-area-inset-bottom));border-top:1px solid var(--border);flex-wrap:wrap;}}
 .pb{{background:var(--card);border:1px solid var(--border);color:var(--text);min-width:44px;min-height:44px;padding:0 12px;border-radius:8px;cursor:pointer;font-family:"DM Sans",sans-serif;font-size:0.85rem;display:flex;align-items:center;justify-content:center;}}
 .pb:active,.pb.on{{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600;}}
@@ -155,7 +165,14 @@ select{{flex:1;background:var(--card);border:1px solid var(--border);color:var(-
 </head>
 <body>
 <div id="loader"><div class="spin"></div>LOADING CATALOG</div>
-<header><h1>Diecast Catalog</h1><span id="tb">— Models</span></header>
+<header style="padding:10px 20px;padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;gap:14px;">
+  <img src=\"' + logo_src + '\" alt="DiecastNeeds" style="height:48px;width:48px;object-fit:contain;border-radius:6px;flex-shrink:0;">
+  <div style="display:flex;flex-direction:column;flex:1;min-width:0;">
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:3px;color:var(--accent);line-height:1;">DiecastNeeds.com</span>
+    <span style="font-size:0.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">Catalog</span>
+  </div>
+  <span id="tb" style="font-size:0.68rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;flex-shrink:0;">— Models</span>
+</header>
 <div class="controls">
   <div class="sw"><input type="text" id="q" placeholder="Search name, brand, SKU…" oninput="onF()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></div>
   <div class="row">
@@ -210,7 +227,7 @@ function rG(){{
     const img=p.imgs&&p.imgs.length?p.imgs[0]:'';
     const ih=img?`<img src="${{e(img)}}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\"ni\\">🚗</div>'">`:'<div class="ni">🚗</div>';
     const ic=p.imgs&&p.imgs.length>1?`<span class="ic">📷 ${{p.imgs.length}}</span>`:'';
-    return `<div class="card" onclick="openM(${{idx}})"><div class="iw">${{ih}}<span class="bt">${{e(p.b)}}</span>${{ic}}</div><div class="cb"><div class="ct">${{e(p.n)}}</div><div class="cf"><span class="sk">${{e(p.c)}}</span><span class="pr">${{ps}}</span></div></div></div>`;
+    return `<div class="card" onclick="openM(${{idx}})"><div class="iw">${{ih}}<span class="bt">${{e(p.b)}}</span>${{ic}}</div><div class="cb"><div class="ct">${{e(p.n)}}</div><div class="sku-row"><span class="sku-label">SKU#</span><span class="sku-val">${{e(p.c)}}</span></div><div class="price-row"><span class="pr">${{ps}}</span></div></div></div>`;
   }}).join('');
 }}
 function rP(){{
