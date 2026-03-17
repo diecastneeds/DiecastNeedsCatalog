@@ -1,6 +1,6 @@
 # 🚗 Diecast Catalog
 
-Live catalog at: `https://YOUR-USERNAME.github.io/diecast-catalog`
+Live catalog at: `https://YOUR-USERNAME.github.io/diecast-catalog](https://diecastneeds.github.io/DiecastNeedsCatalog`
 
 ---
 
